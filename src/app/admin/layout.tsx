@@ -4,13 +4,31 @@ import { AuthProvider } from '@/context/AuthContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { usePathname } from 'next/navigation';
 
+import Sidebar from './components/Sidebar';
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isLoginPage = pathname === '/admin/login';
 
   return (
     <AuthProvider>
-      {isLoginPage ? children : <ProtectedRoute>{children}</ProtectedRoute>}
+      {isLoginPage ? (
+        children
+      ) : (
+        <ProtectedRoute>
+          <div className="flex h-screen overflow-hidden bg-gray-100">
+            <aside className="hidden w-64 md:block">
+              {/* Sidebar Component */}
+              <div className="h-full">
+                 <Sidebar />
+              </div>
+            </aside>
+            <main className="flex-1 overflow-y-auto p-8">
+              {children}
+            </main>
+          </div>
+        </ProtectedRoute>
+      )}
     </AuthProvider>
   );
 }

@@ -1,0 +1,54 @@
+{
+  "rules": {
+    "users": {
+        "$uid": {
+          // Users can read their own role to check permissions
+          // Admins can read everyone's role
+          ".read": "auth != null && ($uid === auth.uid || root.child('users').child(auth.uid).child('role').val() === 'admin')",
+          
+          // Only Admins can change roles (or you update manually in Console)
+          // preventing users from promoting themselves
+          ".write": "root.child('users').child(auth.uid).child('role').val() === 'admin'"
+        }
+    },
+    "operators": {
+      "$uid": {
+        // Operators can read/write their own profile
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "buses": {
+      // Anyone can read buses (passengers)
+      ".read": true,
+      // Index by operator to allow querying "my buses"
+      ".indexOn": ["operatorId"],
+      "$busId": {
+        // Allow write if:
+        // 1. New record AND operatorId matches authenticated user
+        // 2. Existing record AND operatorId matches authenticated user
+        ".write": "auth != null && ((!data.exists() && newData.child('operatorId').val() === auth.uid) || (data.child('operatorId').val() === auth.uid))"
+      }
+    },
+    "routes": {
+      ".read": true,
+      "$busId": {
+        // Allow write if the user is the operator of the referenced bus
+        ".write": "root.child('buses').child($busId).child('operatorId').val() === auth.uid"
+      }
+    },
+    "locations": {
+      ".read": true,
+      "$busId": {
+        // Allow write if the user is the operator of the referenced bus
+        ".write": "root.child('buses').child($busId).child('operatorId').val() === auth.uid"
+      }
+    },
+    "trips": {
+      "$trip_id": {
+        ".read": "true",
+        ".write": "auth != null && root.child('routes').child(root.child('operators').child(auth.uid).child('busId').val()).child('trips').child($trip_id).exists() && root.child('buses').child(root.child('operators').child(auth.uid).child('busId').val()).child('operatorId').val() === auth.uid"
+      }
+    }
+  }
+}
