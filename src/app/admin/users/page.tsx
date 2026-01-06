@@ -12,10 +12,10 @@ export default function UsersPage() {
 
   useEffect(() => {
     const fetchUsers = async () => {
+      // User check is implicit via cookies and middleware, but client side we check if context has user
       if (!user) return;
       try {
-        const token = await user.getIdToken();
-        const data = await userService.getUsers(token);
+        const data = await userService.getUsers();
         setUsers(data);
       } catch (err: unknown) {
         if (err instanceof Error) {

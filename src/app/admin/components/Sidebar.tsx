@@ -47,7 +47,7 @@ export default function Sidebar() {
             {user?.email?.[0].toUpperCase()}
           </div>
           <div className="overflow-hidden">
-            <p className="truncate text-sm font-medium text-white">{user?.displayName || 'Admin'}</p>
+            <p className="truncate text-sm font-medium text-white">{user?.full_name || 'Admin'}</p>
             <p className="truncate text-xs text-gray-500">{user?.email}</p>
           </div>
         </div>

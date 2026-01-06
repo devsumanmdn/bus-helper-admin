@@ -1,77 +1,85 @@
 'use client';
 
 import { useState } from 'react';
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase/config';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import { GoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, googleLogin } = useAuth();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/admin');
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred');
-      }
-    }
-  };
+    setIsSubmitting(true);
+    setError('');
 
-  const handleGoogleLogin = async () => {
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      router.push('/admin');
-    } catch (err) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('An unknown error occurred');
-      }
+      await login(email, password);
+    } catch (err: any) {
+      setError(err.message || 'Failed to login');
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-md">
-        <h2 className="mb-6 text-2xl font-bold text-center">Admin Login</h2>
-        {error && <p className="mb-4 text-red-500 text-sm text-center">{error}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        <div>
+          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+            Sign in to Admin Dashboard
+          </h2>
+        </div>
         
-        <form onSubmit={handleEmailLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
-              type="email"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded relative" role="alert">
+            <span className="block sm:inline">{error}</span>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              type="password"
-              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+        )}
+
+        <form className="mt-8 space-y-6" onSubmit={handleEmailLogin}>
+          <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="email-address" className="sr-only">Email address</label>
+              <input
+                id="email-address"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="sr-only">Password</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
           </div>
-          <button
-            type="submit"
-            className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          >
-            Sign in
-          </button>
+
+          <div>
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Signing in...' : 'Sign in'}
+            </button>
+          </div>
         </form>
 
         <div className="mt-6">
@@ -84,13 +92,21 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-6">
-            <button
-              onClick={handleGoogleLogin}
-              className="w-full rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-              Sign in with Google
-            </button>
+          <div className="mt-6 flex justify-center">
+             <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  try {
+                    if (credentialResponse.credential) {
+                      await googleLogin(credentialResponse.credential);
+                    }
+                  } catch (err: any) {
+                    setError(err.message || 'Google login failed');
+                  }
+                }}
+                onError={() => {
+                  setError('Google login failed');
+                }}
+              />
           </div>
         </div>
       </div>

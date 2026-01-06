@@ -10,20 +10,26 @@ export interface Bus {
 
 export const busService = {
   async getBuses(): Promise<Bus[]> {
-    const response = await fetch(`${API_URL}/buses`);
+    const response = await fetch(`${API_URL}/buses`, {
+      credentials: 'include'
+    }); // Public or cookie-based if strictly protected
+    
+    // Note: If backend allows public access for getBuses, credentials might not be strictly needed unless identifying user.
+    // Based on previous conv, getBuses might be public, but let's include credentials just in case backend checks user role.
+    
     if (!response.ok) {
       throw new Error('Failed to fetch buses');
     }
     return response.json();
   },
 
-  async updateBusStatus(id: string, status: string, token: string): Promise<Bus> {
+  async updateBusStatus(id: string, status: string): Promise<Bus> {
     const response = await fetch(`${API_URL}/buses/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
       },
+      credentials: 'include',
       body: JSON.stringify({ status })
     });
 

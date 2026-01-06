@@ -9,12 +9,10 @@ export interface User {
 }
 
 export const userService = {
-  async getUsers(token: string): Promise<User[]> {
-    console.log('[UserService] Fetching users with token:', token.substring(0, 10) + '...');
+  async getUsers(): Promise<User[]> {
+    console.log('[UserService] Fetching users');
     const response = await fetch(`${API_URL}/users`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      credentials: 'include'
     });
 
     if (!response.ok) {

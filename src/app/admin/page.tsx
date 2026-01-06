@@ -25,8 +25,7 @@ export default function AdminDashboard() {
         let users: import('@/services/userService').User[] = [];
         if (user) {
           try {
-            const token = await user.getIdToken();
-            users = await userService.getUsers(token);
+            users = await userService.getUsers();
           } catch (e) {
             console.error("Failed to fetch users for stats", e);
           }

@@ -35,9 +35,8 @@ export default function BusesPage() {
     if (!user) return;
     try {
       setProcessingId(busId);
-      const token = await user.getIdToken();
       
-      const updatedBus = await busService.updateBusStatus(busId, status, token);
+      const updatedBus = await busService.updateBusStatus(busId, status);
       
       // Update local state
       setBuses(buses.map(b => b.id === busId ? { ...b, status: updatedBus.status } : b));
