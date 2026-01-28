@@ -1,22 +1,16 @@
 'use client';
 
 import { useRealtimeBus } from '@/hooks/useRealtimeBus';
-
-interface BusMapProps {
-  busId: string;
-}
+import { Bus } from '@/services/busService';
 
 // TODO: Replace with real Google Maps integration
-export default function BusMap({ busId }: BusMapProps) {
-  // HARDCODED TOKEN for Dev Phase - In prod, fetch from your auth system
-  // Run `go run scripts/gen_token.go` to generate a fresh one if this expires (72h)
-  const DEV_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhZG1pbiI6dHJ1ZSwiZXhwIjoxNzY3Nzg0NDk1LCJuYW1lIjoiSm9obiBEb2UifQ.YhtKVBuKTakUbuuh3DwzGds9qvC4T2rxe-48WfPLMHk";
+export default function BusMap({ bus }: { bus: Bus }) {
 
-  const { location, status } = useRealtimeBus(busId, DEV_TOKEN);
+  const { location, status } = useRealtimeBus(bus.id);
 
   return (
     <div className="p-4 border rounded-lg bg-gray-50 mt-4">
-      <h3 className="font-semibold mb-2">Realtime Tracker (Bus {busId})</h3>
+      <h3 className="font-semibold mb-2">Realtime Tracker ({bus.name})</h3>
       <div className="text-sm text-gray-600 mb-2">
         Status: <span className={`font-mono ${status === 'connected' ? 'text-green-600' : 'text-amber-600'}`}>{status}</span>
       </div>

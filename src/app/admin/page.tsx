@@ -3,7 +3,7 @@
 import BusMap from './components/BusMap';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { busService } from '@/services/busService';
+import { busService, Bus } from '@/services/busService';
 import { userService } from '@/services/userService';
 
 export default function AdminDashboard() {
@@ -11,6 +11,7 @@ export default function AdminDashboard() {
   const [stats, setStats] = useState({
     totalBuses: 0,
     approvedBuses: 0,
+    allBuses: [] as Bus[],
     totalUsers: 0,
     drivers: 0
   });
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
         setStats({
           totalBuses: buses.length,
           approvedBuses: buses.filter(b => b.status === 'approved').length,
+          allBuses: buses,
           totalUsers: users.length,
           drivers: users.filter(u => u.role === 'driver').length
         });
@@ -74,7 +76,11 @@ export default function AdminDashboard() {
       {/* Realtime Map Integration */}
       <div className="bg-white rounded-lg shadow p-4 mb-8">
         <h2 className="text-lg font-medium mb-4">Real-time Bus Tracking (Preview)</h2>
-        <BusMap busId="55" />
+        <div className="grid grid-cols-1 gap-4">
+          {stats.allBuses.map((bus) => (
+            <BusMap key={bus.id} bus={bus} />
+          ))}
+        </div>
       </div>
     </div>
   );

@@ -9,28 +9,27 @@ interface BusLocation {
   lng: number;
 }
 
-export function useRealtimeBus(busId: string | null, token: string) {
+export function useRealtimeBus(busId: string | null) {
   const [location, setLocation] = useState<BusLocation | null>(null);
   
   // Initialize status based on props to ensure correct initial state
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>(
-    (busId && token) ? 'connecting' : 'disconnected'
+    (busId) ? 'connecting' : 'disconnected'
   );
 
   const prevBusId = usePrevious(busId);
-  const prevToken = usePrevious(token);
 
   useEffect(() => {
     // Reset status if props change (and it's not the first render)
-    if ((prevBusId && busId !== prevBusId) || (prevToken && token !== prevToken)) {
+    if ((prevBusId && busId !== prevBusId)) {
       // eslint-disable-next-line
       setStatus('connecting');
       setLocation(null);
     }
-  }, [busId, token, prevBusId, prevToken]);
+  }, [busId, prevBusId,]);
 
   useEffect(() => {
-    if (!busId || !token) {
+    if (!busId) {
       return;
     }
 
@@ -39,9 +38,7 @@ export function useRealtimeBus(busId: string | null, token: string) {
     
     // Pass JWT in headers using the Polyfill
     const evtSource = new EventSourcePolyfill(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      withCredentials: true,
     });
 
     evtSource.onopen = () => {
@@ -68,7 +65,7 @@ export function useRealtimeBus(busId: string | null, token: string) {
     return () => {
       evtSource.close();
     };
-  }, [busId, token]);
+  }, [busId]);
 
   return { location, status };
 }
