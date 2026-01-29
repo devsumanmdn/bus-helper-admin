@@ -12,7 +12,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isLoginPage = pathname === '/admin/login';
 
   return (
-    <GoogleOAuthProvider clientId="869473997596-3b7m9qr5r663ref4pcg75s6sah520d1r.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_WEB_CLIENT_ID  ?? ""}>
       <AuthProvider>
         {isLoginPage ? (
           children
