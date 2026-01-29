@@ -13,12 +13,12 @@ interface AuthContextType {
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({ 
-  user: null, 
+const AuthContext = createContext<AuthContextType>({
+  user: null,
   loading: true,
-  login: async () => {},
-  googleLogin: async () => {},
-  logout: async () => {}
+  login: async () => { },
+  googleLogin: async () => { },
+  logout: async () => { }
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
@@ -28,6 +28,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     checkUser();
+
+    // Set up periodic token refresh (every 10 minutes)
+    // Access token expires in 15 minutes, so refresh at 10 minutes to be safe
+    const refreshInterval = setInterval(async () => {
+      const refreshToken = authService.getStoredRefreshToken();
+
+      if (refreshToken) {
+        try {
+          console.log('[AuthContext] Refreshing token...');
+          await authService.refresh();
+          console.log('[AuthContext] Token refreshed successfully');
+        } catch (error) {
+          console.error('[AuthContext] Failed to refresh token:', error);
+          // If refresh fails, log out the user
+          setUser(null);
+          router.push('/admin/login');
+        }
+      }
+    }, 10 * 60 * 1000); // 10 minutes
+
+    // Cleanup interval on unmount
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const checkUser = async () => {

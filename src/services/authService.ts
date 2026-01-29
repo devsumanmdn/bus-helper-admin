@@ -23,7 +23,14 @@ export const authService = {
       throw new Error(error.error || 'Login failed');
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // Store refresh token in localStorage
+    if (data.refresh_token) {
+      localStorage.setItem('refresh_token', data.refresh_token);
+    }
+
+    return data;
   },
 
   async googleLogin(idToken: string): Promise<AuthResponse> {
@@ -39,7 +46,44 @@ export const authService = {
       throw new Error(error.error || 'Google Login failed');
     }
 
-    return response.json();
+    const data = await response.json();
+
+    // Store refresh token in localStorage
+    if (data.refresh_token) {
+      localStorage.setItem('refresh_token', data.refresh_token);
+    }
+
+    return data;
+  },
+
+  async refresh(): Promise<AuthResponse> {
+    const refreshToken = localStorage.getItem('refresh_token');
+
+    if (!refreshToken) {
+      throw new Error('No refresh token available');
+    }
+
+    const response = await fetch(`${API_URL}/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+
+    if (!response.ok) {
+      // Clear invalid refresh token
+      localStorage.removeItem('refresh_token');
+      throw new Error('Failed to refresh token');
+    }
+
+    const data = await response.json();
+
+    // Store new refresh token
+    if (data.refresh_token) {
+      localStorage.setItem('refresh_token', data.refresh_token);
+    }
+
+    return data;
   },
 
   async logout(): Promise<void> {
@@ -47,6 +91,9 @@ export const authService = {
       method: 'POST',
       credentials: 'include',
     });
+
+    // Clear refresh token from storage
+    localStorage.removeItem('refresh_token');
   },
 
   async me(token?: string): Promise<User> {
@@ -65,5 +112,9 @@ export const authService = {
     }
 
     return response.json();
+  },
+
+  getStoredRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token');
   }
 };
