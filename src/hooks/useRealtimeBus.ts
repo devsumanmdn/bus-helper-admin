@@ -7,6 +7,7 @@ interface BusLocation {
   bus_id: string;
   lat: number;
   lng: number;
+  status_text?: string;
 }
 
 export function useRealtimeBus(busId: string | null) {

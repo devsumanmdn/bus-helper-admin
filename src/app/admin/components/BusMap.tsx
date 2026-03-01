@@ -54,6 +54,12 @@ export default function BusMap({ bus }: { bus: Bus }) {
           <div className="text-xs text-gray-400 col-span-2">
             Last Update: {new Date().toLocaleTimeString()}
           </div>
+          {location.status_text && (
+            <div className="col-span-2 bg-blue-50 border border-blue-200 rounded p-2 mt-1">
+              <span className="block text-xs uppercase text-blue-400">Operator Status</span>
+              <span className="text-sm text-blue-700">{location.status_text}</span>
+            </div>
+          )}
         </div>
       ) : (
         <div className="text-gray-400 italic">Waiting for location updates...</div>
