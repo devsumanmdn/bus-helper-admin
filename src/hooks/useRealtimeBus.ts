@@ -71,7 +71,7 @@ export function useRealtimeBus(busId: string | null) {
         }
       };
 
-      evtSource.onerror = (err: any) => {
+      evtSource.onerror = (err) => {
         console.log('[SSE] Connection interrupted, will reconnect...', err);
 
         // Close the current connection
@@ -79,9 +79,10 @@ export function useRealtimeBus(busId: string | null) {
 
         // Only set error status if it's an actual error (not a timeout/reconnection)
         // The event-source-polyfill throws errors on timeout, but these are expected
-        if (err?.status && err.status >= 400) {
+        const sseError = err as unknown as { status?: number };
+        if (sseError?.status && sseError.status >= 400) {
           // Actual HTTP error
-          console.error('[SSE] HTTP Error:', err.status);
+          console.error('[SSE] HTTP Error:', sseError.status);
           setStatus('error');
         } else {
           // Timeout or network issue - stay in connecting state
